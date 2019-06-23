@@ -13,21 +13,9 @@ def tmplt_ipv4(address):
         command.append(address['tag'])
     if address.get('secondary') and address['secondary']:
         command.append('secondary')
-    # command.append('auth')
-    # command.append(user['algorithm'])
-    # command.append(user['password'])
-    # if user.get('privacy_password', False):
-    #     command.append('priv')
-    #     if user.get('aes_128', False):
-    #         command.append('aes-128')
-    #     command.append(user['privacy_password'])
-    # if user.get('localized_key', False):
-    #     command.append('localizedKey')
-    # if user.get('engine_id', False):
-    #     command.append('engineID')
-    #     command.append(user['engine_id'])
-
     return " ".join(command)
+
+
 class Interfaces(Templator):
 
     PARSERS = {
