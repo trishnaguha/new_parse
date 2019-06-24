@@ -185,6 +185,29 @@ class Snmp(Templator):
                 }
             },
         },
+        'traps': {
+            'getval': re.compile(r'''
+                  ^((?P<negate>no)\s)?
+                  snmp-server\senable\straps\s
+                  (?P<type>\S+)\s
+                  (?P<name>\S+)$''', re.VERBOSE),
+            'setval':
+            'snmp-server source-interface traps {source_interface[traps]}',
+            'result': {
+                'traps': {
+                    '{type}': {
+                        'type': '{type}',
+                        'names': [{
+                            'name': '{name}',
+                            'negate': '{negate}'
+                        }]
+                    }
+                }
+            },
+            'cast': {
+                'negate': 'to_bool'
+            }
+        },
         'users': {
             'getval':
             re.compile(
