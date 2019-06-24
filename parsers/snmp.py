@@ -41,7 +41,7 @@ class Snmp(Templator):
         'communities': {
             'getval':
             r'^snmp-server community (?P<community>\S+) group (?P<group>\S+)$',
-            'setval': 'snmp server community {community} group {group}',
+            'setval': 'snmp-server community {community} group {group}',
             'result': {
                 'communities': {
                     '{community}': {
@@ -54,7 +54,7 @@ class Snmp(Templator):
         'communities_acl': {
             'getval':
             r'^snmp-server community (?P<community>\S+) use-acl (?P<acl>\S+)$',
-            'setval': 'snmp server community {community} use-acl {acl}',
+            'setval': 'snmp-server community {community} use-acl {acl}',
             'result': {
                 'communities': {
                     '{community}': {
@@ -67,7 +67,7 @@ class Snmp(Templator):
         'communities_ipv4acl': {
             'getval':
             r'^snmp-server community (?P<community>\S+) use-ipv4acl (?P<ipv4acl>\S+)$',
-            'setval': 'snmp server community {community} use-ipv4acl {ipv4acl}',
+            'setval': 'snmp-server community {community} use-ipv4acl {ipv4acl}',
             'result': {
                 'communities': {
                     '{community}': {
@@ -80,7 +80,7 @@ class Snmp(Templator):
         'communities_ipv6acl': {
             'getval':
             r'^snmp-server community (?P<community>\S+) use-ipv6acl (?P<ipv6acl>\S+)$',
-            'setval': 'snmp server community {community} use-ipv6acl {ipv6acl}',
+            'setval': 'snmp-server community {community} use-ipv6acl {ipv6acl}',
             'result': {
                 'communities': {
                     '{community}': {
@@ -101,7 +101,7 @@ class Snmp(Templator):
               \suse-ipv6acl
               \s(?P<ipv6acl>\S+)$''', re.VERBOSE),
             'setval':
-            'snmp server community {community} use-ipv4acl {ipv4acl} use-ipv6acl {ipv6acl}$',
+            'snmp-server community {community} use-ipv4acl {ipv4acl} use-ipv6acl {ipv6acl}$',
             'result': {
                 'communities': {
                     '{community}': {
