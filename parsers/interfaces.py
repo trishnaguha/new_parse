@@ -73,7 +73,7 @@ class Interfaces(Templator):
                 }
             },
             'cast': {
-                'no': 'default_not_no'
+                'no': 'no_means_false'
             }
         },
         'switchport': {
@@ -85,7 +85,7 @@ class Interfaces(Templator):
                 }
             },
             'cast': {
-                'no': 'default_not_no'
+                'no': 'no_means_false'
             }
         },
         'vrf': {

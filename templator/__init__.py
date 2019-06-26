@@ -1,14 +1,20 @@
 
 import re
 from copy import deepcopy
-from ansible.module_utils.network.common.utils import dict_merge, dict_diff
+from ansible.module_utils.network.common.utils import dict_merge
 
 class Templator():
 
     PARSERS = {}
 
-    def __init__(self, lines):
+    def __init__(self, lines=None):
         self._lines = lines
+
+    @staticmethod
+    def to_bool(string):
+        if string:
+            return True
+        return False
 
     @staticmethod
     def to_int(string):
@@ -17,43 +23,36 @@ class Templator():
         return None
 
     @staticmethod
-    def to_bool(string):
-        if string:
+    def no_means_true(string):
+        if string == 'no':
             return True
-        return None
+        return False
 
     @staticmethod
-    def default_not_no(string):
+    def no_means_false(string):
         if string == 'no':
             return False
-        return None
+        return True
 
-    @staticmethod
-    def default_is_no(string):
-        if string != 'no':
-            return True
-        return None
-
-    def _deepformat(self, tmplt, data, cast):
-        if not cast:
-            cast = {}
+    def _deepformat(self, tmplt, data):
         wtmplt = deepcopy(tmplt)
         for tkey, tval in tmplt.items():
             ftkey = tkey.format(**data)
             if ftkey != tkey:
                 wtmplt.pop(tkey)
             if isinstance(tval, dict):
-                wtmplt[ftkey] = self._deepformat(tval, data, cast)
+                wtmplt[ftkey] = self._deepformat(tval, data)
             elif isinstance(tval, list):
-                wtmplt[ftkey] = [self._deepformat(x, data, cast) for x in tval]
+                wtmplt[ftkey] = [self._deepformat(x, data)
+                                 for x in tval]
             elif isinstance(tval, str):
-                casted = False
+                done = False
                 for dkey, dval in data.items():
-                    if tval == "{{{x}}}".format(x=dkey) and dkey in cast:
-                        res = getattr(self, cast[dkey])(dval)
-                        wtmplt[ftkey] = res
-                        casted = True
-                if not casted:
+                    if tval == "{{{x}}}".format(x=dkey):
+                        wtmplt[ftkey] = dval
+                        done = True
+                        break
+                if not done:
                     try:
                         wtmplt[ftkey] = tval.format(**data)
                     except KeyError:
@@ -70,23 +69,33 @@ class Templator():
                 cap = re.match(parser['getval'], line)
                 if cap:
                     capdict = cap.groupdict()
+                    # cast all the values
+                    for key, val in capdict.items():
+                        if key in parser.get('cast', {}):
+                            capdict[key] = getattr(self,
+                                                   parser['cast'][key])(val)
+
                     if parser.get('shared'):
                         shared = capdict
                     vals = dict_merge(capdict, shared)
-                    res = self._deepformat(deepcopy(parser['result']), vals,
-                                           parser.get('cast'))
+                    res = self._deepformat(deepcopy(parser['result']), vals)
                     result = dict_merge(result, res)
         return result
 
-    def render(self, data, parser_name, negate=False):
-        try:
-            setval = self.PARSERS[parser_name]['setval']
-            if callable(setval):
-                res = setval(data)
-            else:
-                res = setval.format(**data)
-        except KeyError:
-            res = None
-        if negate:
-            return 'no ' + res
-        return res
+    def render(self, data, parser_names, negate=False):
+        if not isinstance(parser_names, list):
+            parser_names = [parser_names]
+        commands = []
+        for pname in parser_names:
+            try:
+                setval = self.PARSERS[pname]['setval']
+                if callable(setval):
+                    res = setval(data)
+                else:
+                    res = setval.format(**data)
+                if negate:
+                    res = 'no ' + res
+                commands.append(res)
+            except KeyError:
+                pass
+        return commands

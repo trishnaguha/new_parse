@@ -31,19 +31,19 @@ def run():
 
     config = []
     for interface in result:
-        config.append(interfaces.render(interface, 'interface'))
+        config.extend(interfaces.render(interface, 'interface'))
         for optional in ['description', 'vrf']:
             res = interfaces.render(interface, optional)
             if res:
-                config.append(res)
+                config.extend(res)
         if interface.get('switchport') is False:
-            config.append(interfaces.render(interface, 'switchport',
+            config.extend(interfaces.render(interface, 'switchport',
                                             negate=True))
         if interface.get('ip', {}).get('redirects') is False:
-            config.append(interfaces.render(interface, 'ip_redirects',
+            config.extend(interfaces.render(interface, 'ip_redirects',
                                             negate=True))
         for ipv4 in interface.get('ipv4', []):
-            config.append(interfaces.render(ipv4, 'ip_address'))
+            config.extend(interfaces.render(ipv4, 'ip_address'))
 
     trimmed = [line.strip() for line in LINES.splitlines() if line]
     return config, result, trimmed

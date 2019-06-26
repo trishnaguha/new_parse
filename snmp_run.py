@@ -1,7 +1,7 @@
 """
 snmp demo
 """
-from parsers.snmp import Snmp
+from parsers.snmp import SnmpTemplate
 from templator.pretty import jsonify
 
 LINES = '''
@@ -66,7 +66,7 @@ def run():
     """
     run
     """
-    snmp = Snmp(lines=LINES.splitlines())
+    snmp = SnmpTemplate(lines=LINES.splitlines())
     result = snmp.parse()
     result['communities'] = result['communities'].values()
     result['communities'] = sorted(result['communities'],
@@ -75,37 +75,33 @@ def run():
     result['users'] = sorted(result['users'], key=lambda k: k['username'])
 
     config = []
-    for pname in [
-            'aaa_user_cache_timeout', 'contact', 'engine_id_local', 'enable',
-            'global_enforce_priv', 'location', 'packet_size',
-            'source_interface_informs', 'source_interface_traps'
-    ]:
-        config.append(snmp.render(result, pname))
+    pnames = ['aaa_user.cache_timeout', 'contact', 'engine_id.local', 'enable',
+              'global_enforce_priv', 'location', 'packet_size',
+              'source_interface.informs', 'source_interface.traps']
+    config.extend(snmp.render(result, pnames))
 
     for community in result['communities']:
-        for pname in ['communities', 'communities_acl']:
-            res = snmp.render(community, pname)
-            if res:
-                config.append(res)
+        pnames = ['communities', 'communities.acl']
+        config.extend(snmp.render(community, pnames))
         for pname in [
-                'communities_ipv4acl_ipv6acl', 'communities_ipv4acl',
-                'communities_ipv6acl'
+                'communities.ipv4acl_ipv6acl', 'communities.ipv4acl',
+                'communities.ipv6acl'
         ]:
             res = snmp.render(community, pname)
             if res:
-                config.append(res)
+                config.extend(res)
                 break
 
     for user in result['users']:
-        config.append(snmp.render(user, 'users'))
+        config.extend(snmp.render(user, 'users'))
         if user.get('enforce_priv'):
-            config.append(snmp.render(user, 'users_enforce_priv'))
+            config.extend(snmp.render(user, 'users.enforce_priv'))
         for pname in [
-                'users_ipv4acl_ipv6acl', 'users_ipv4acl', 'users_ipv6acl'
+                'users.ipv4acl_ipv6acl', 'users.ipv4acl', 'users.ipv6acl'
         ]:
             res = snmp.render(user, pname)
             if res:
-                config.append(res)
+                config.extend(res)
                 break
 
     trimmed = [line.strip() for line in LINES.splitlines() if line]
